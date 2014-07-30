@@ -86,6 +86,7 @@ var app = (function () {
 
         // finally, run it
         module.init.call(module);
+        modules[identifier].module = module;
         modules[identifier].init = true;
     };
 
