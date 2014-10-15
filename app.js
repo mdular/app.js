@@ -19,13 +19,50 @@
  * TODO: implement a window.load trigger for controllers and initialize on dom ready.. needs IE8-safe implementation -> this is currently solved using aight.js
  * TODO: inject module references into the controller
  */
-/* global app:true */
+/* global app:true, aight */
 
 var app = (function () {
     "use strict";
 
     var modules = [];
     var globalModules = [];
+
+    var listen = function (event) {
+        // 'load' or 'DOMContentLoaded'
+
+        window.addEventListener(event, function () {
+            app.start.call(app);
+        });
+
+        // TODO: remove aight.js dependency for version check
+        // 'DOMContentLoaded' for IE < 9, depends on aight.js for version detection
+        if (event === 'DOMContentLoaded' && typeof aight !== 'undefined') {
+            if (aight.browser.ie && aight.browser.version < 9) {
+                var explorerTimer = window.setInterval(function() {
+                    if (window.document.body) {
+                        // Check for doScroll success
+                        try {
+                            window.document.createElement('div').doScroll('left');
+                            window.clearInterval(explorerTimer);
+                        } catch(e) {
+                            return;
+                        }
+
+                        app.start.call(app);
+                    }
+                }, 10);
+            }
+        }
+    };
+
+    var start = function () {
+        var body = document.getElementsByTagName('body')[0],
+            modules = body.getAttribute('data-modules') || '',
+            controller = body.getAttribute('id') || '';
+
+        init(modules.split(' '));
+        run([controller]);
+    };
 
     var init = function (modulesToRun) {
         for (var k = 0; k < globalModules.length; k++) {
@@ -118,6 +155,8 @@ var app = (function () {
     };
 
     return {
+        listen              : listen,
+        start               : start,
         init                : init,
         run                 : run,
         reset               : reset,
@@ -128,13 +167,4 @@ var app = (function () {
     };
 }());
 
-window.addEventListener('load', function () {
-    "use strict";
-
-    var body = document.getElementsByTagName('body')[0],
-        modules = body.getAttribute('data-modules') || '',
-        controller = body.getAttribute('id') || '';
-
-    app.init.apply(app, [modules.split(' ')]);
-    app.run.apply(app, [controller]);
-});
+app.listen('DOMContentLoaded');
