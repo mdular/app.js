@@ -1,6 +1,7 @@
 /**
  * lightweight application manager
- * @author Markus J Doetsch mdular.com
+ * @author Markus J Doetsch
+ * https://github.com/mdular/app.js
  *
  * register page controllers like this:
  * app.registerController('myController, myModule[FunctionWrapper]);
@@ -16,7 +17,7 @@
  *
  * modules are invoked before the controller
  *
- * TODO: implement a window.load trigger for controllers and initialize on dom ready.. needs IE8-safe implementation -> this is currently solved using aight.js
+ * TODO: implement additional window.load callback for controllers (to simplify lazy loading scripting)
  * TODO: inject module references into the controller
  */
 /* global app:true, aight */
@@ -27,31 +28,32 @@ var app = (function () {
     var modules = [];
     var globalModules = [];
 
+    // 'load' or 'DOMContentLoaded'
     var listen = function (event) {
-        // 'load' or 'DOMContentLoaded'
 
         window.addEventListener(event, function () {
-            app.start.call(app);
+            start();
         });
 
-        // TODO: remove aight.js dependency for version check
-        // 'DOMContentLoaded' for IE < 9, depends on aight.js for version detection
-        if (event === 'DOMContentLoaded' && typeof aight !== 'undefined') {
-            if (aight.browser.ie && aight.browser.version < 9) {
-                var explorerTimer = window.setInterval(function() {
-                    if (window.document.body) {
-                        // Check for doScroll success
-                        try {
-                            window.document.createElement('div').doScroll('left');
-                            window.clearInterval(explorerTimer);
-                        } catch(e) {
-                            return;
-                        }
-
-                        app.start.call(app);
+        // solve 'DOMContentLoaded' for IE < 8
+        if (
+            event === 'DOMContentLoaded'
+            && typeof document.documentMode !== 'undefined'
+            && document.documentMode === 8
+        ) {
+            // doScroll test method
+            var t = window.setInterval(function() {
+                if (window.document.body) {
+                    // Check for doScroll success
+                    try {
+                        window.document.createElement('div').doScroll('left');
+                        window.clearInterval(t);
+                    } catch(e) {
+                        return;
                     }
-                }, 10);
-            }
+                    start();
+                }
+            }, 10);
         }
     };
 
@@ -65,16 +67,15 @@ var app = (function () {
     };
 
     var init = function (modulesToRun) {
-        for (var k = 0; k < globalModules.length; k++) {
-            modulesToRun.push(globalModules[k]);
-        }
+        modulesToRun = modulesToRun.concat(globalModules);
 
-        for (var i = 0; i < modulesToRun.length; i++) {
+        for (var i = 0, count = modulesToRun.length; i < count; i++) {
             invoke(modulesToRun[i]);
         }
     };
 
     var run = function (controllerName) {
+        // fail nonexisting controllers silently
         if (modules[controllerName] === undefined) {
             return;
         }
@@ -89,7 +90,7 @@ var app = (function () {
 
     var reset = function (moduleName) {
         if (modules[moduleName] === undefined) {
-            return;
+            throw new Error('Trying to reset non-existing module: ' + moduleName);
         }
 
         modules[moduleName].init = false;
@@ -118,7 +119,7 @@ var app = (function () {
 
         // init present?
         if (typeof module.init !== 'function') {
-            throw new Error('invalid style: no init() found in ' + identifier);
+            throw new Error('invalid style: no init() found in: ' + identifier);
         }
 
         // finally, run it
@@ -156,11 +157,7 @@ var app = (function () {
 
     return {
         listen              : listen,
-        start               : start,
-        init                : init,
-        run                 : run,
         reset               : reset,
-        modules             : modules,
         registerController  : registerController,
         registerModule      : registerModule,
         getModule           : getModule
