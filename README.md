@@ -2,6 +2,8 @@
 ## lightweight application manager
 Because sometimes it's the best way to keep it *real* simple, but still have structure and execution efficiency.
 
+Compatible IE8 and higher
+
 ## Usage
 
 ### Prepare your body tag
