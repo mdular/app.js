@@ -134,7 +134,6 @@ var app = (function () {
     // there is no internal difference between modules and controllers
     var registerController = function (controllerName, module) {
         registerModule(controllerName, module);
-
     };
 
     var registerModule = function (moduleName, module) {
@@ -143,7 +142,6 @@ var app = (function () {
         }
 
         // module should always be invoked
-        if (arguments[2]) {
             globalModules.push(moduleName);
         }
 
