@@ -165,4 +165,5 @@ var app = (function () {
     };
 }());
 
+// 'DOMContentLoaded' or 'load'
 app.listen('DOMContentLoaded');
