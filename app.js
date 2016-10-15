@@ -142,13 +142,13 @@ var app = (function () {
         }
 
         // module should always be invoked
+        if (arguments[2] === true) {
             globalModules.push(moduleName);
         }
 
         modules[moduleName] = {
             module  : module,
             init    : false
-            //run     : false
         };
     };
 
