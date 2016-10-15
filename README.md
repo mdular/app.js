@@ -4,7 +4,7 @@ Because sometimes it's the best way to keep it *real* simple, but still have str
 
 Compatible IE8 and higher
 
-You can read about the thought process in [app.js - organize your javascript code for fun and profit](https://mdular.com)
+You can read about the thought process in [Organize javascript code for standard websites with app.js](https://mdular.com/post/16-organize-javascript-code-on-standard-websites)
 
 ## Usage
 
